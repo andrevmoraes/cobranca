@@ -1,6 +1,8 @@
-# 📁 Estrutura do Projeto
+> Conteúdo consolidado em `README.md`.
 
-```
+Este arquivo existe apenas por compatibilidade histórica. Todas as informações relevantes foram unificadas e reorganizadas em `README.md`.
+
+Você pode remover este arquivo do repositório se desejar.
 cobranca/
 ├── public/
 │   ├── icon-192.svg          # Ícone PWA 192x192

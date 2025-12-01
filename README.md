@@ -1,104 +1,190 @@
-# Cobrança - Streamings
+## Cobrança — Streamings (PWA)
 
-PWA para gerenciar cobranças de streamings compartilhados entre amigos.
+Aplicação PWA para gerenciar cobranças de serviços de streaming compartilhados entre amigos. Permite cadastrar serviços, definir quem paga, dividir valores (igual ou personalizado) e visualizar saldos por usuário.
 
-## 🎯 Funcionalidades
+**Objetivo:** facilitar o controle de custos compartilhados de assinaturas e prover uma interface leve, offline-capable e instalável.
 
-- **Autenticação simples** por número de telefone
-- **Gestão de usuários** (admin cadastra amigos)
-- **Cadastro de streamings** com pagador definido
-- **Divisão de custos** (igual ou personalizada)
-- **Dashboard** com saldo entre usuários
-- **Design Windows Phone** - tiles, cores vibrantes, tipografia clean
+---
 
-## 🚀 Tecnologias
+## Funcionalidades principais
 
-- **React** + Vite
-- **Supabase** (PostgreSQL + Auth)
-- **PWA** (Service Worker + Manifest)
-- **CSS puro** com tema Windows Phone
+- Autenticação por número de telefone (login sem senha)
+- Gestão de usuários (criação/edição por admin)
+- Cadastro e edição de streamings (nome, valor, dia de cobrança, pagador)
+- Divisão de custos: divisão igual ou valores personalizados por participante
+- Dashboard com cálculo automático de saldos entre usuários
+- Design inspirado no Windows Phone (tiles, palette vibrante)
+- PWA: service worker, manifest e instalação em dispositivos
 
-## 📦 Instalação
+---
 
-1. Clone o repositório
-2. Instale as dependências:
-```bash
+## Tecnologias
+
+- React + Vite
+- Supabase (PostgreSQL + Auth)
+- PWA (Service Worker + Manifest)
+- CSS puro (estrutura de estilos em `src/styles/`)
+
+---
+
+## Estrutura do projeto (resumo)
+
+```
+cobranca/
+├── public/                 # assets públicos, manifest, service worker
+├── src/
+│   ├── components/         # componentes reutilizáveis (BottomNav, Alert...)
+│   ├── contexts/           # AuthContext
+│   ├── pages/              # páginas (Dashboard, Login, Streamings, Users)
+│   ├── services/           # integração com Supabase
+│   └── styles/             # css: global, forms, buttons, tiles, navigation
+├── dados-exemplo.sql       # dados de exemplo para popular o DB
+├── supabase-schema.sql     # schema do banco (tables, indices, RLS)
+├── SETUP_SUPABASE.md       # passo-a-passo para configurar Supabase
+├── QUICK_START.md          # instruções rápidas de setup e uso
+└── README.md               # este arquivo
+```
+
+---
+
+## Banco de dados (visão técnica)
+
+Tabelas principais e campos (resumo do `supabase-schema.sql`):
+
+- `users`
+   - `id` UUID (PK)
+   - `nome` VARCHAR
+   - `telefone` VARCHAR (único)
+   - `is_admin` BOOLEAN
+   - `created_at` TIMESTAMP
+
+- `streamings`
+   - `id` UUID (PK)
+   - `nome` VARCHAR
+   - `valor_total` DECIMAL
+   - `dia_cobranca` INTEGER
+   - `pagador_id` UUID (FK → users)
+   - `criado_por` UUID (FK → users)
+   - `created_at` TIMESTAMP
+
+- `divisoes`
+   - `id` UUID (PK)
+   - `streaming_id` UUID (FK → streamings)
+   - `user_id` UUID (FK → users)
+   - `valor_personalizado` DECIMAL (nullable; null = divisão igual)
+   - `created_at` TIMESTAMP
+
+Índices recomendados já incluídos no schema: índices por `telefone`, `pagador_id`, `streaming_id`.
+
+---
+
+## Arquitetura e fluxo de dados
+
+- Autenticação: `AuthContext` valida o telefone junto ao Supabase e persiste estado no `localStorage`.
+- Dashboard: carrega divisões e streamings do usuário, calcula saldos por pessoa e exibe em tiles.
+- Streamings: lista, criação via modal, seleção de pagador, seleção de participantes e divisão automática ou personalizada.
+- Usuários: área restrita a admins para listar/criar/editar usuários.
+
+RLS (Row Level Security) está habilitado no schema; políticas no projeto atual permitem leitura/escrita típicas para app interno — ajustar para produção.
+
+---
+
+## Design e tema
+
+- Paleta principal inspirada no Windows Phone: `#00aff0` (primary), `#00aba9` (secondary), `#ff8c00` (accent), `#00a300` (success), `#e51400` (danger).
+- Tipografia: Segoe UI (fallback: system-ui)
+- Layout: tiles flat, espaçamento consistente (4/8/16/24/32), bordas mínimas.
+
+Arquivos de estilo: `src/styles/global.css`, `tiles.css`, `buttons.css`, `forms.css`, `navigation.css`.
+
+---
+
+## Configuração (Supabase) — resumo
+
+1. Criar projeto em https://supabase.com
+2. Executar o conteúdo de `supabase-schema.sql` no SQL Editor (cria tabelas, índices e políticas)
+3. Copiar `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` para um arquivo `.env` (use `.env.example` como modelo)
+
+Exemplo `.env`:
+
+```env
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-publica-aqui
+```
+
+4. Criar o primeiro usuário admin (exemplo SQL):
+
+```sql
+INSERT INTO users (nome, telefone, is_admin)
+VALUES ('Seu Nome', '11999999999', true);
+```
+
+Notas:
+- Telefones devem estar em formato numérico sem formatação (11 dígitos, ex: `11987654321`).
+- Em ambiente de produção, revise as políticas RLS e chaves do Supabase.
+
+---
+
+## Início rápido (desenvolvimento)
+
+Instale dependências e inicie o servidor de desenvolvimento:
+
+```powershell
 npm install
-```
-
-3. Configure o Supabase:
-   - Crie um projeto no [Supabase](https://supabase.com)
-   - Execute o script `supabase-schema.sql` no SQL Editor
-   - Copie `.env.example` para `.env` e adicione suas credenciais:
-```
-VITE_SUPABASE_URL=sua_url_do_supabase
-VITE_SUPABASE_ANON_KEY=sua_chave_anonima
-```
-
-4. Inicie o servidor de desenvolvimento:
-```bash
 npm run dev
 ```
 
-## 📊 Estrutura do Banco de Dados
+Abra `http://localhost:5173` no navegador. Faça login com o telefone cadastrado no banco.
 
-### users
-- `id` - UUID (PK)
-- `nome` - Nome do usuário
-- `telefone` - Número de telefone (único)
-- `is_admin` - Se é administrador
+Para popular dados de exemplo use `dados-exemplo.sql` via SQL Editor do Supabase.
 
-### streamings
-- `id` - UUID (PK)
-- `nome` - Nome do streaming (Netflix, Disney+, etc)
-- `valor_total` - Valor mensal total
-- `dia_cobranca` - Dia do mês da cobrança
-- `pagador_id` - Quem paga a conta (FK users)
+---
 
-### divisoes
-- `id` - UUID (PK)
-- `streaming_id` - Streaming (FK)
-- `user_id` - Usuário (FK)
-- `valor_personalizado` - Valor específico (null = divisão igual)
+## PWA & Deploy
 
-## 🎨 Design
+- Service Worker em `public/sw.js` fornece caching básico para o modo offline.
+- `public/manifest.json` configurado para instalação em dispositivos móveis.
+- Build para produção com Vite: `npm run build` (ver `package.json`).
 
-Inspirado no Windows Phone:
-- Tiles/cards flat
-- Paleta de cores vibrantes
-- Tipografia Segoe UI
-- Animações sutis
-- Layout responsivo
+---
 
-## 📱 PWA
+## Segurança
 
-O app funciona offline e pode ser instalado no smartphone como app nativo.
+- Autenticação: login por telefone (sem senha). Admins controlam criação de usuários.
+- RLS habilitado (ajustar políticas para produção).
+- Não exponha chaves anon em repositórios públicos; use variáveis de ambiente no deploy.
 
-## 🔐 Autenticação
+---
 
-Login simplificado por telefone sem SMS. O admin cadastra os amigos e cada um loga com seu número.
+## Operação e tarefas futuras
 
-## 💰 Como Funciona
+Prioridade média / backlog identificado:
 
-1. Admin cadastra amigos
-2. Qualquer usuário cadastra um streaming definindo quem paga
-3. Adiciona pessoas que dividem o streaming
-4. Dashboard calcula automaticamente os saldos
-5. Mostra quanto cada pessoa deve/recebe
+- Histórico de pagamentos e marcação de pagamentos realizados
+- Notificações push para cobranças
+- Valores personalizados mais flexíveis na divisão
+- Exportação de relatórios (CSV/PDF)
+- Suporte a categorias além de streaming
+- Dark/Light mode toggle
 
-## 📝 Próximas Features
+---
 
-- Histórico de pagamentos
-- Notificações de cobrança
-- Categorias além de streaming
-- Exportar relatórios
-- Marcar pagamentos como realizados
+## Desenvolvimento colaborativo
 
+- Estrutura limpa de componentes em `src/components/`
+- Contexto de autenticação em `src/contexts/AuthContext.jsx`
+- Serviços e integrações em `src/services/supabase.js`
 
-## React Compiler
+Contribuições são bem-vindas: abra issues descrevendo o escopo e envie PRs com mudanças pequenas e bem documentadas.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Referências internas
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Arquivos principais: `supabase-schema.sql`, `dados-exemplo.sql`, `SETUP_SUPABASE.md`, `QUICK_START.md`.
+- Páginas principais: `src/pages/Dashboard.jsx`, `src/pages/Login.jsx`, `src/pages/Streamings.jsx`, `src/pages/Users.jsx`.
+
+---
+
+**Atualização do README:** se novos arquivos `.md` forem adicionados e alterarem significativamente o contexto (novas políticas de segurança, mudanças no schema, ou novos fluxos), atualize este README para refletir tais mudanças.
+
