@@ -1,0 +1,152 @@
+.tile {
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(var(--blur-md)) saturate(180%);
+  backdrop-filter: blur(var(--blur-md)) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent
+  );
+}
+
+.tile:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-lg);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.tile:active {
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Glass tiles com cores vibrantes */
+.tile--primary {
+  background: linear-gradient(135deg, 
+    rgba(0, 122, 255, 0.3) 0%, 
+    rgba(0, 122, 255, 0.1) 100%
+  );
+  border-color: rgba(0, 122, 255, 0.5);
+}
+
+.tile--secondary {
+  background: linear-gradient(135deg, 
+    rgba(90, 200, 250, 0.3) 0%, 
+    rgba(90, 200, 250, 0.1) 100%
+  );
+  border-color: rgba(90, 200, 250, 0.5);
+}
+
+.tile--accent {
+  background: linear-gradient(135deg, 
+    rgba(175, 82, 222, 0.3) 0%, 
+    rgba(175, 82, 222, 0.1) 100%
+  );
+  border-color: rgba(175, 82, 222, 0.5);
+}
+
+.tile--success {
+  background: linear-gradient(135deg, 
+    rgba(52, 199, 89, 0.3) 0%, 
+    rgba(52, 199, 89, 0.1) 100%
+  );
+  border-color: rgba(52, 199, 89, 0.5);
+}
+
+.tile--danger {
+  background: linear-gradient(135deg, 
+    rgba(255, 59, 48, 0.3) 0%, 
+    rgba(255, 59, 48, 0.1) 100%
+  );
+  border-color: rgba(255, 59, 48, 0.5);
+}
+
+.tile--green {
+  background: linear-gradient(135deg, 
+    rgba(52, 199, 89, 0.3) 0%, 
+    rgba(52, 199, 89, 0.1) 100%
+  );
+  border-color: rgba(52, 199, 89, 0.5);
+}
+
+.tile--purple {
+  background: linear-gradient(135deg, 
+    rgba(175, 82, 222, 0.3) 0%, 
+    rgba(175, 82, 222, 0.1) 100%
+  );
+  border-color: rgba(175, 82, 222, 0.5);
+}
+
+.tile--pink {
+  background: linear-gradient(135deg, 
+    rgba(255, 45, 85, 0.3) 0%, 
+    rgba(255, 45, 85, 0.1) 100%
+  );
+  border-color: rgba(255, 45, 85, 0.5);
+}
+
+.tile--lime {
+  background: linear-gradient(135deg, 
+    rgba(0, 199, 190, 0.3) 0%, 
+    rgba(0, 199, 190, 0.1) 100%
+  );
+  border-color: rgba(0, 199, 190, 0.5);
+}
+
+.tile__title {
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.tile__subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.tile__value {
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-md);
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+@media (max-width: 768px) {
+  .tile-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .tile__value {
+    font-size: 2rem;
+  }
+}

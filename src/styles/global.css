@@ -1,0 +1,132 @@
+:root {
+  /* Windows Phone Colors */
+  --wp-blue: #00aff0;
+  --wp-green: #00a300;
+  --wp-orange: #ff8c00;
+  --wp-pink: #e671b8;
+  --wp-purple: #a200ff;
+  --wp-red: #e51400;
+  --wp-teal: #00aba9;
+  --wp-lime: #a4c400;
+  
+  /* Primary colors */
+  --primary: var(--wp-blue);
+  --secondary: var(--wp-teal);
+  --accent: var(--wp-orange);
+  --success: var(--wp-green);
+  --danger: var(--wp-red);
+  --warning: var(--wp-orange);
+  
+  /* Backgrounds */
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #2d2d2d;
+  
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-muted: #808080;
+  
+  /* Typography */
+  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Border radius */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-xl: 18px;
+
+  /* Blur / shadows */
+  --blur-md: 18px;
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.45);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-light);
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: var(--font-weight-light);
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 1rem;
+}
+
+input, select, textarea {
+  font-family: var(--font-family);
+  font-size: 1rem;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
