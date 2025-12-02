@@ -1,113 +1,59 @@
 .tile {
-  background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(var(--blur-md)) saturate(180%);
-  backdrop-filter: blur(var(--blur-md)) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--bg-card);
+  border: 1px solid #e6e9ef;
   border-radius: var(--radius-xl);
   padding: var(--spacing-lg);
-  transition: all var(--transition-normal);
-  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: default;
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-md);
 }
 
-.tile::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.4), 
-    transparent
-  );
-}
-
 .tile:hover {
-  transform: translateY(-4px) scale(1.02);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .tile:active {
-  transform: translateY(-2px) scale(1.01);
+  transform: translateY(0);
 }
 
 /* Glass tiles com cores vibrantes */
 .tile--primary {
-  background: linear-gradient(135deg, 
-    rgba(0, 122, 255, 0.3) 0%, 
-    rgba(0, 122, 255, 0.1) 100%
-  );
-  border-color: rgba(0, 122, 255, 0.5);
+  border-left: 4px solid var(--primary);
 }
 
 .tile--secondary {
-  background: linear-gradient(135deg, 
-    rgba(90, 200, 250, 0.3) 0%, 
-    rgba(90, 200, 250, 0.1) 100%
-  );
-  border-color: rgba(90, 200, 250, 0.5);
+  border-left: 4px solid var(--secondary);
 }
 
 .tile--accent {
-  background: linear-gradient(135deg, 
-    rgba(175, 82, 222, 0.3) 0%, 
-    rgba(175, 82, 222, 0.1) 100%
-  );
-  border-color: rgba(175, 82, 222, 0.5);
+  border-left: 4px solid var(--accent);
 }
 
 .tile--success {
-  background: linear-gradient(135deg, 
-    rgba(52, 199, 89, 0.3) 0%, 
-    rgba(52, 199, 89, 0.1) 100%
-  );
-  border-color: rgba(52, 199, 89, 0.5);
+  border-left: 4px solid var(--success);
 }
 
 .tile--danger {
-  background: linear-gradient(135deg, 
-    rgba(255, 59, 48, 0.3) 0%, 
-    rgba(255, 59, 48, 0.1) 100%
-  );
-  border-color: rgba(255, 59, 48, 0.5);
+  border-left: 4px solid var(--danger);
 }
 
 .tile--green {
-  background: linear-gradient(135deg, 
-    rgba(52, 199, 89, 0.3) 0%, 
-    rgba(52, 199, 89, 0.1) 100%
-  );
-  border-color: rgba(52, 199, 89, 0.5);
+  border-left: 4px solid var(--success);
 }
 
 .tile--purple {
-  background: linear-gradient(135deg, 
-    rgba(175, 82, 222, 0.3) 0%, 
-    rgba(175, 82, 222, 0.1) 100%
-  );
-  border-color: rgba(175, 82, 222, 0.5);
+  border-left: 4px solid var(--wp-purple);
 }
 
 .tile--pink {
-  background: linear-gradient(135deg, 
-    rgba(255, 45, 85, 0.3) 0%, 
-    rgba(255, 45, 85, 0.1) 100%
-  );
-  border-color: rgba(255, 45, 85, 0.5);
+  border-left: 4px solid var(--wp-pink);
 }
 
 .tile--lime {
-  background: linear-gradient(135deg, 
-    rgba(0, 199, 190, 0.3) 0%, 
-    rgba(0, 199, 190, 0.1) 100%
-  );
-  border-color: rgba(0, 199, 190, 0.5);
+  border-left: 4px solid var(--wp-lime);
 }
 
 .tile__title {

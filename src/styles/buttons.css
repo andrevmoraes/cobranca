@@ -29,28 +29,29 @@
 
 .btn--primary {
   background-color: var(--primary);
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .btn--secondary {
-  background-color: var(--secondary);
+  background-color: transparent;
   color: var(--text-primary);
+  border: 1px solid #d1d5db;
 }
 
 .btn--accent {
   background-color: var(--accent);
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .btn--danger {
   background-color: var(--danger);
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .btn--ghost {
   background-color: transparent;
   color: var(--text-primary);
-  border: 2px solid var(--text-secondary);
+  border: 1px solid #e6e9ef;
 }
 
 .btn--block {

@@ -186,5 +186,41 @@ Contribuições são bem-vindas: abra issues descrevendo o escopo e envie PRs co
 
 ---
 
+## Histórico de mudanças e refatorações
+
+### Sessão de Clean Code & Bugfix (Dezembro 2025)
+
+#### 📄 Consolidação de documentação
+- Unificou `ARCHITECTURE.md`, `QUICK_START.md` e `SETUP_SUPABASE.md` em um único `README.md` técnico, bem estruturado e pronto para IA.
+- Removeu redundâncias e reorganizou seções de forma lógica.
+
+#### 🔧 Refatoração de código (Clean Code)
+- **`src/pages/Login.jsx` e `src/pages/Users.jsx`**: Corrigiu função `formatarTelefone()` que retornava variável de estado externa ao digitar >11 dígitos. Agora recorta corretamente para 11 dígitos e formata.
+- **`src/contexts/AuthContext.jsx`**: Padronizou `createContext(null)` (melhor tipagem) e traduzir mensagem de erro do hook para português.
+- **`src/main.jsx`**: Removeu vírgula extra após JSX na chamada `render()`.
+
+#### 🐛 Bugfix crítico (Microsoft Edge)
+- **Problema**: App renderizava "tudo preto" no Edge, funcionando normalmente no Firefox.
+- **Raiz**: Service Worker (`public/sw.js`) bloqueava requisições para domínios externos (Supabase), impedindo carregamento de dados.
+- **Solução aplicada**:
+  - Atualizado `public/sw.js` para usar `skipWaiting()` e `clients.claim()` (ativa SW imediatamente)
+  - Mudou para estratégia **network-first** para requisições de navegação (HTML)
+  - Mantém cache-first para recursos estáticos
+  - **Exclui requisições externas** (Supabase, APIs) da interceptação — deixa passar direto para a rede
+  - Incrementou versão de cache para `cobranca-v2`
+
+#### 🔍 Diagnóstico e validação
+- Adicionou logs temporários em `main.jsx`, `AuthContext.jsx`, `App.jsx` para diagnosticar versões do React e carregamento.
+- Validou que React 18.3.1 carrega corretamente em Edge e Firefox após mudanças.
+- Removeu logs de diagnóstico após resolução (limpeza de console para produção).
+
+#### ✅ Resultado
+- ✅ App funciona corretamente em Edge, Firefox e outros navegadores
+- ✅ Service Worker otimizado (não intercepta APIs externas)
+- ✅ Clean Code aplicado (sem mudanças comportamentais)
+- ✅ Documentação consolidada e clara
+
+---
+
 **Atualização do README:** se novos arquivos `.md` forem adicionados e alterarem significativamente o contexto (novas políticas de segurança, mudanças no schema, ou novos fluxos), atualize este README para refletir tais mudanças.
 

@@ -1,12 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../services/supabase'
-
-// Diagnostic log: ajuda a identificar múltiplas cópias do React
-try {
-  console.log('AuthContext carregado', { reactVersion: React?.version, hasUseState: typeof React.useState === 'function' })
-} catch (e) {
-  console.log('AuthContext: erro no log diagnóstico', e)
-}
 
 const AuthContext = createContext(null)
 

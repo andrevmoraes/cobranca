@@ -17,15 +17,15 @@
   --danger: var(--wp-red);
   --warning: var(--wp-orange);
   
-  /* Backgrounds */
-  --bg-primary: #000000;
-  --bg-secondary: #1a1a1a;
-  --bg-card: #2d2d2d;
+  /* Backgrounds (simplified light theme) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f7f9;
+  --bg-card: #ffffff;
   
   /* Text */
-  --text-primary: #ffffff;
-  --text-secondary: #b3b3b3;
-  --text-muted: #808080;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
   
   /* Typography */
   --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -43,13 +43,13 @@
   
   /* Border radius */
   --radius-none: 0;
-  --radius-sm: 2px;
-  --radius-xl: 18px;
+  --radius-sm: 6px;
+  --radius-xl: 10px;
 
   /* Blur / shadows */
-  --blur-md: 18px;
-  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.45);
+  --blur-md: 0px;
+  --shadow-md: 0 4px 10px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 8px 20px rgba(16, 24, 40, 0.08);
   
   /* Transitions */
   --transition-fast: 150ms ease;
