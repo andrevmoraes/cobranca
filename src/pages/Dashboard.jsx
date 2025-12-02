@@ -11,7 +11,163 @@ export default function Dashboard({ showAlert }) {
   const [totalRecebendo, setTotalRecebendo] = useState(0)
   const [loading, setLoading] = useState(true)
   const [notificacoesAtivadas, setNotificacoesAtivadas] = useState(false)
+  const [expandedId, setExpandedId] = useState(null)
   const intervaloNotificacoesRef = useRef(null)
+
+  // Formata número para moeda com vírgula (ex: 16,73)
+  const formatMoneyText = (value) => {
+    const num = Number(value) || 0
+    return num.toFixed(2).replace('.', ',')
+  }
+
+  // Monta o texto de resumo para copiar baseado no saldo (por pessoa)
+  const montarResumoTexto = (saldo) => {
+    const nomePessoa = saldo.pessoa?.nome || 'Pessoa'
+    const linhas = []
+
+    linhas.push('Resumo das assinaturas compartilhadas', '')
+
+    // Assinaturas pagas por você (a outra pessoa)
+    const porVoce = (saldo.breakdown || []).filter(d => d.tipo === 'você_deve')
+    if (porVoce.length > 0) {
+      linhas.push('Assinaturas pagas por você:')
+      porVoce.forEach(d => {
+        const totalTxt = formatMoneyText(d.valorTotal)
+        const perTxt = formatMoneyText(d.valor)
+        const count = d.participantes || 1
+        const nomes = (d.participantesNomes || []).filter(Boolean)
+        const used = d.usedProfiles || (nomes.length > 0 ? nomes.length : 1)
+        linhas.push(`- ${d.nome}`)
+        linhas.push(`  Valor total: R$ ${totalTxt}`)
+        linhas.push(`  Meu custo proporcional: R$ ${perTxt} (${used}/${count})`)
+      })
+      linhas.push('')
+    }
+
+    // Assinaturas pagas por mim (você = current user)
+    const porMim = (saldo.breakdown || []).filter(d => d.tipo === 'deve_para_voce')
+    if (porMim.length > 0) {
+      linhas.push('Assinaturas pagas por mim:')
+      porMim.forEach(d => {
+        const totalTxt = formatMoneyText(d.valorTotal)
+        const perTxt = formatMoneyText(d.valor)
+        const count = d.participantes || 1
+        const nomes = (d.participantesNomes || []).filter(Boolean)
+        const used = d.usedProfiles || (nomes.length > 0 ? nomes.length : 1)
+        linhas.push(`- ${d.nome}`)
+        linhas.push(`  Valor total: R$ ${totalTxt}`)
+        linhas.push(`  Seu custo proporcional: R$ ${perTxt} (${used}/${count})`)
+      })
+      linhas.push('')
+    }
+
+    // Totais (apenas se houver assinaturas em ambas as categorias)
+    const totalVocePagouPorMim = porVoce.reduce((s, d) => s + (Number(d.valor) || 0), 0)
+    const totalEuPagueiPorVoce = porMim.reduce((s, d) => s + (Number(d.valor) || 0), 0)
+
+    const saldoFinal = Number(saldo.valor) || 0
+
+    if (porVoce.length > 0 && porMim.length > 0) {
+      linhas.push('Totais:')
+      linhas.push(`- Você pagou por mim: R$ ${formatMoneyText(totalVocePagouPorMim)}`)
+      linhas.push(`- Eu paguei por você: R$ ${formatMoneyText(totalEuPagueiPorVoce)}`)
+      linhas.push('--------------------------------')
+      if (saldoFinal > 0) {
+        linhas.push(`Você deve me transferir R$ ${formatMoneyText(saldoFinal)}`)
+      } else if (saldoFinal < 0) {
+        linhas.push(`Eu devo transferir R$ ${formatMoneyText(Math.abs(saldoFinal))}`)
+      } else {
+        linhas.push(`R$ 0,00`)
+      }
+    } else {
+      // Se só houver uma das categorias, não mostramos Totais — vamos direto ao valor a transferir
+      if (saldoFinal > 0) {
+        linhas.push(`Você deve me transferir R$ ${formatMoneyText(saldoFinal)}`)
+      } else if (saldoFinal < 0) {
+        linhas.push(`Eu devo transferir R$ ${formatMoneyText(Math.abs(saldoFinal))}`)
+      } else {
+        linhas.push(`R$ 0,00`)
+      }
+    }
+
+    return linhas.join('\n')
+  }
+
+  const copiarResumo = async (saldo) => {
+    try {
+      const texto = montarResumoTexto(saldo)
+      await navigator.clipboard.writeText(texto)
+      showAlert('Resumo copiado para a área de transferência', 'success')
+    } catch (err) {
+      console.error('Erro ao copiar resumo:', err)
+      showAlert('Não foi possível copiar o resumo. Tente manualmente.', 'error')
+    }
+  }
+
+  // Formata telefone para uso no PIX (adiciona DDI 55 quando necessário)
+  const formatPhoneForPix = (raw) => {
+    if (!raw) return ''
+    const digits = String(raw).replace(/\D/g, '')
+    if (digits.length === 11) return `55${digits}`
+    if (digits.length === 13 && digits.startsWith('55')) return digits
+    return digits
+  }
+
+  const copiarPix = async (saldo) => {
+    try {
+      const amount = Math.abs(Number(saldo.valor) || 0)
+      if (amount <= 0) {
+        showAlert('Valor zero — nada a transferir.', 'warning')
+        return
+      }
+      // Determina quem deve receber o PIX:
+      // - Se saldo.valor > 0: a pessoa do card nos deve, logo o destinatário é o usuário atual
+      // - Se saldo.valor <= 0: o destinatário é a pessoa do card
+      let telefoneDest = null
+      if (Number(saldo.valor) > 0) {
+        telefoneDest = user?.telefone
+        if (!telefoneDest) {
+          try {
+            const { data, error } = await supabase
+              .from('users')
+              .select('telefone')
+              .eq('id', user?.id)
+              .single()
+            if (!error && data?.telefone) telefoneDest = data.telefone
+          } catch (err) {
+            console.error('Erro ao buscar telefone do usuário atual:', err)
+          }
+        }
+      } else {
+        telefoneDest = saldo.pessoa?.telefone
+        if (!telefoneDest) {
+          try {
+            const { data, error } = await supabase
+              .from('users')
+              .select('telefone')
+              .eq('id', saldo.pessoa?.id)
+              .single()
+            if (!error && data?.telefone) telefoneDest = data.telefone
+          } catch (err) {
+            console.error('Erro ao buscar telefone do destinatário:', err)
+          }
+        }
+      }
+
+      const phoneForPix = formatPhoneForPix(telefoneDest)
+      if (!phoneForPix) {
+        showAlert('Telefone do destinatário não disponível.', 'error')
+        return
+      }
+
+      const texto = `R$${formatMoneyText(amount)} para ${phoneForPix}`
+      await navigator.clipboard.writeText(texto)
+      showAlert('Texto Pix copiado para a área de transferência', 'success')
+    } catch (err) {
+      console.error('Erro ao copiar PIX:', err)
+      showAlert('Não foi possível copiar o texto do PIX.', 'error')
+    }
+  }
 
   useEffect(() => {
     if (!user?.id) {
@@ -195,19 +351,31 @@ export default function Dashboard({ showAlert }) {
           nome: 'Pagador'
         }
 
-        if (!saldosMap.has(streaming.pagador_id)) {
-          saldosMap.set(streaming.pagador_id, {
-            pessoa: pagador,
-            valor: 0
-          })
+          if (!saldosMap.has(streaming.pagador_id)) {
+            saldosMap.set(streaming.pagador_id, {
+              pessoa: pagador,
+              valor: 0,
+              breakdown: []
+            })
         }
 
         const registro = saldosMap.get(streaming.pagador_id)
         if (!registro.pessoa) {
           registro.pessoa = pagador
         }
-        registro.valor -= valorPorPessoa
-        totalDevendoAcumulado += valorPorPessoa
+          registro.valor -= valorPorPessoa
+          totalDevendoAcumulado += valorPorPessoa
+          // Adiciona detalhe para justificar o valor
+          registro.breakdown.push({
+            streamingId: streaming.id,
+            nome: streaming.nome,
+            valor: valorPorPessoa,
+            valorTotal: valorTotal,
+            participantes: participantes,
+            participantesNomes: (streaming.divisoes || []).map(d => d.user?.nome).filter(Boolean),
+            usedProfiles: 1,
+            tipo: 'você_deve' // indica que o usuário deve esse valor para o pagador
+          })
       })
 
       streamingsPagos?.forEach((streaming) => {
@@ -224,11 +392,12 @@ export default function Dashboard({ showAlert }) {
             nome: 'Participante'
           }
 
-          if (!saldosMap.has(userId)) {
-            saldosMap.set(userId, {
-              pessoa: participante,
-              valor: 0
-            })
+            if (!saldosMap.has(userId)) {
+              saldosMap.set(userId, {
+                pessoa: participante,
+                valor: 0,
+                breakdown: []
+              })
           }
 
           const valorPorPessoa = divisao.valor_personalizado != null
@@ -241,6 +410,17 @@ export default function Dashboard({ showAlert }) {
           }
           registro.valor += valorPorPessoa
           totalRecebendoAcumulado += valorPorPessoa
+          // Adiciona detalhe indicando que esse participante deve esse valor ao usuário
+          registro.breakdown.push({
+            streamingId: streaming.id,
+            nome: streaming.nome,
+            valor: valorPorPessoa,
+            valorTotal: valorTotal,
+            participantes: participantes,
+            participantesNomes: (streaming.divisoes || []).map(d => d.user?.nome).filter(Boolean),
+            usedProfiles: 1,
+            tipo: 'deve_para_voce'
+          })
         })
       })
 
@@ -313,37 +493,7 @@ export default function Dashboard({ showAlert }) {
         </div>
       </div>
 
-      <div className="tile-grid">
-        <div className="tile tile--success">
-          <div className="tile__title">Você vai receber</div>
-          <div className="tile__value">
-            R$ {totalRecebendo.toFixed(2)}
-          </div>
-        </div>
-
-        <div className="tile tile--danger">
-          <div className="tile__title">Você deve pagar</div>
-          <div className="tile__value">
-            R$ {totalDevendo.toFixed(2)}
-          </div>
-        </div>
-
-        <div className="tile tile--primary">
-          <div className="tile__title">Saldo final</div>
-          <div className="tile__value">
-            R$ {(totalRecebendo - totalDevendo).toFixed(2)}
-          </div>
-        </div>
-
-        {notificacoesAtivadas && (
-          <div className="tile tile--info">
-            <div className="tile__title">🔔 Notificações</div>
-            <div className="tile__value" style={{ fontSize: '1rem' }}>
-              Ativas
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Visão geral removida — exibir somente detalhes por pessoa conforme solicitado */}
 
       <h2 style={{ 
         marginTop: 'var(--spacing-xl)', 
@@ -355,17 +505,79 @@ export default function Dashboard({ showAlert }) {
 
       <div className="tile-grid">
         {saldos.map((saldo, index) => (
-          <div 
-            key={saldo.pessoa.id} 
-            className={`tile ${saldo.valor > 0 ? 'tile--green' : 'tile--pink'}`}
-          >
-            <div className="tile__title">{saldo.pessoa.nome}</div>
-            <div className="tile__subtitle">
-              {saldo.valor > 0 ? 'deve para você' : 'você deve'}
+          <div key={saldo.pessoa.id}>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setExpandedId(expandedId === saldo.pessoa.id ? null : saldo.pessoa.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter') setExpandedId(expandedId === saldo.pessoa.id ? null : saldo.pessoa.id) }}
+              className={`tile ${saldo.valor > 0 ? 'tile--green' : 'tile--pink'}`}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="tile__title">{saldo.pessoa.nome}</div>
+              <div className="tile__subtitle">
+                {saldo.valor > 0 ? 'deve para você' : 'você deve'}
+              </div>
+              <div className="tile__value">
+                R$ {Math.abs(saldo.valor).toFixed(2)}
+              </div>
             </div>
-            <div className="tile__value">
-              R$ {Math.abs(saldo.valor).toFixed(2)}
-            </div>
+
+            {expandedId === saldo.pessoa.id && (
+              <div style={{
+                background: 'var(--bg-secondary)',
+                padding: 'var(--spacing-md)',
+                borderRadius: 'var(--radius-sm)',
+                marginTop: 'var(--spacing-md)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h3 style={{ margin: 0 }}>Detalhes</h3>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); copiarResumo(saldo) }}
+                      className="btn btn--ghost btn--small"
+                      title="Copiar resumo"
+                      style={{ opacity: 0.9 }}
+                    >
+                      Copiar
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); copiarPix(saldo) }}
+                      className="btn btn--ghost btn--small"
+                      title="Copiar texto PIX"
+                      style={{ opacity: 0.9 }}
+                    >
+                      Copiar PIX
+                    </button>
+                  </div>
+                </div>
+                {saldo.breakdown && saldo.breakdown.length > 0 ? (
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {saldo.breakdown.map((d, i) => {
+                      const sign = d.tipo === 'deve_para_voce' ? '+' : '-'
+                      const perPerson = Number(d.valor) || 0
+                      const total = Number(d.valorTotal) || 0
+                      const count = d.participantes || 1
+                      return (
+                        <li key={`${d.streamingId}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #e6e9ef' }}>
+                          <div style={{ color: 'var(--text-secondary)' }}>
+                            <div>{d.nome}</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                              {total.toFixed(2)} / {count} = {perPerson.toFixed(2)}
+                            </div>
+                          </div>
+                          <div style={{ fontWeight: 600, color: d.tipo === 'deve_para_voce' ? 'var(--accent)' : 'var(--danger)' }}>
+                            {sign} R$ {perPerson.toFixed(2)}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <div style={{ color: 'var(--text-muted)' }}>Nenhum detalhe disponível</div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
